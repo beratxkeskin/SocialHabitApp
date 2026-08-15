@@ -1,4 +1,4 @@
-package com.berat.socialhabitapp.ui.theme
+package com.berat.socialhabitapp.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
