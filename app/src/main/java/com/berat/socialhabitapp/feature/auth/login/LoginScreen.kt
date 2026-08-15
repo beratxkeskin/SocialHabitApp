@@ -1,4 +1,4 @@
-package com.berat.socialhabitapp.feature.auth.register
+package com.berat.socialhabitapp.feature.auth.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,37 +30,31 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-import androidx.compose.material3.TextButton
-
 @Composable
-fun RegisterRoute(
-    viewModel: RegisterViewModel,
-    onNavigateToLogin: () -> Unit,
+fun LoginRoute(
+    viewModel: LoginViewModel,
+    onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    RegisterScreen(
+    LoginScreen(
         uiState = uiState,
         onEmailChange = viewModel::onEmailChanged,
-        onUsernameChange = viewModel::onUsernameChanged,
-        onDisplayNameChange = viewModel::onDisplayNameChanged,
         onPasswordChange = viewModel::onPasswordChanged,
-        onRegisterClick = viewModel::register,
-        onNavigateToLogin = onNavigateToLogin,
+        onLoginClick = viewModel::login,
+        onNavigateToRegister = onNavigateToRegister,
         modifier = modifier
     )
 }
 
 @Composable
-fun RegisterScreen(
-    uiState: RegisterUiState,
+fun LoginScreen(
+    uiState: LoginUiState,
     onEmailChange: (String) -> Unit,
-    onUsernameChange: (String) -> Unit,
-    onDisplayNameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    onRegisterClick: () -> Unit,
-    onNavigateToLogin: () -> Unit,
+    onLoginClick: () -> Unit,
+    onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -81,39 +76,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Hesap Oluştur",
+                text = "Giriş Yap",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            if (uiState.isSuccess) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Kayıt Başarılı!",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Hesabınız başarıyla oluşturuldu. Lütfen e-postanıza (${uiState.email}) gönderilen onay bağlantısını kontrol edin.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
             if (uiState.generalError != null) {
                 Card(
@@ -133,34 +101,6 @@ fun RegisterScreen(
             }
 
             OutlinedTextField(
-                value = uiState.displayName,
-                onValueChange = onDisplayNameChange,
-                label = { Text("Görünen Ad") },
-                isError = uiState.displayNameError != null,
-                supportingText = uiState.displayNameError?.let { { Text(it) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && !uiState.isSuccess
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = uiState.username,
-                onValueChange = onUsernameChange,
-                label = { Text("Kullanıcı Adı") },
-                isError = uiState.usernameError != null,
-                supportingText = uiState.usernameError?.let { { Text(it) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && !uiState.isSuccess
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
                 value = uiState.email,
                 onValueChange = onEmailChange,
                 label = { Text("E-posta") },
@@ -172,7 +112,7 @@ fun RegisterScreen(
                     imeAction = ImeAction.Next
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && !uiState.isSuccess
+                enabled = !uiState.isLoading
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -190,17 +130,17 @@ fun RegisterScreen(
                     imeAction = ImeAction.Done
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && !uiState.isSuccess
+                enabled = !uiState.isLoading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onRegisterClick,
+                onClick = onLoginClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = !uiState.isLoading && !uiState.isSuccess
+                enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
@@ -209,19 +149,18 @@ fun RegisterScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Kayıt Ol")
+                    Text("Giriş Yap")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(
-                onClick = onNavigateToLogin,
+                onClick = onNavigateToRegister,
                 enabled = !uiState.isLoading
             ) {
-                Text("Zaten hesabınız var mı? Giriş Yapın")
+                Text("Hesabınız yok mu? Kayıt Olun")
             }
         }
     }
 }
-

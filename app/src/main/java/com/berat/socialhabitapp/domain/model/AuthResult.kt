@@ -15,9 +15,12 @@ sealed interface AuthResult {
         }
 
         data class ValidationError(val field: ValidationField) : Failure
+        data object InvalidCredentials : Failure
+        data object EmailNotConfirmed : Failure
         data object UserAlreadyExists : Failure
         data object NetworkError : Failure
         data object ServerError : Failure
         data object Unknown : Failure
     }
 }
+

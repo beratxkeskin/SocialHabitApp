@@ -49,11 +49,7 @@ class RegisterUseCase @Inject constructor(
     private fun isValidEmail(email: String): Boolean {
         if (email.isBlank() || email.contains(" ")) return false
         val atIndex = email.indexOf('@')
-        if (atIndex <= 0 || atIndex != email.lastIndexOf('@') || atIndex >= email.length - 1) {
-            return false
-        }
-        val domain = email.substring(atIndex + 1)
-        return domain.contains('.') && !domain.startsWith('.') && !domain.endsWith('.')
+        return atIndex > 0 && atIndex == email.lastIndexOf('@') && atIndex < email.length - 1
     }
 
     private fun isValidUsername(username: String): Boolean {

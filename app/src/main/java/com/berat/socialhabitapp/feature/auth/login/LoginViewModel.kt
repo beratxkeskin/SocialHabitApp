@@ -1,9 +1,9 @@
-package com.berat.socialhabitapp.feature.auth.register
+package com.berat.socialhabitapp.feature.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.berat.socialhabitapp.domain.model.AuthResult
-import com.berat.socialhabitapp.domain.usecase.RegisterUseCase
+import com.berat.socialhabitapp.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,48 +13,36 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase
+class LoginViewModel @Inject constructor(
+    private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(RegisterUiState())
-    val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChanged(email: String) {
         _uiState.update { it.copy(email = email, emailError = null, generalError = null) }
-    }
-
-    fun onUsernameChanged(username: String) {
-        _uiState.update { it.copy(username = username, usernameError = null, generalError = null) }
-    }
-
-    fun onDisplayNameChanged(displayName: String) {
-        _uiState.update { it.copy(displayName = displayName, displayNameError = null, generalError = null) }
     }
 
     fun onPasswordChanged(password: String) {
         _uiState.update { it.copy(password = password, passwordError = null, generalError = null) }
     }
 
-    fun register() {
+    fun login() {
         val currentState = _uiState.value
         _uiState.update {
             it.copy(
                 isLoading = true,
                 emailError = null,
-                usernameError = null,
-                displayNameError = null,
                 passwordError = null,
                 generalError = null
             )
         }
 
         viewModelScope.launch {
-            val result = registerUseCase(
+            val result = loginUseCase(
                 email = currentState.email,
-                password = currentState.password,
-                username = currentState.username,
-                displayName = currentState.displayName
+                password = currentState.password
             )
 
             when (result) {
@@ -74,24 +62,27 @@ class RegisterViewModel @Inject constructor(
                             emailError = if (result.field == AuthResult.Failure.ValidationField.EMAIL) {
                                 "Geçerli bir e-posta adresi giriniz"
                             } else null,
-                            usernameError = if (result.field == AuthResult.Failure.ValidationField.USERNAME) {
-                                "Kullanıcı adı 3-20 karakter olmalı ve yalnızca harf, rakam veya alt çizgi içermelidir"
-                            } else null,
-                            displayNameError = if (result.field == AuthResult.Failure.ValidationField.DISPLAY_NAME) {
-                                "Görünen ad 2-50 karakter arasında olmalıdır"
-                            } else null,
                             passwordError = if (result.field == AuthResult.Failure.ValidationField.PASSWORD) {
-                                "Şifre en az 6 karakter olmalıdır"
+                                "Şifre alanı boş bırakılamaz"
                             } else null
                         )
                     }
                 }
 
-                is AuthResult.Failure.UserAlreadyExists -> {
+                is AuthResult.Failure.InvalidCredentials -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            generalError = "Bu e-posta veya kullanıcı adı zaten kullanımda"
+                            generalError = "E-posta veya şifre hatalı."
+                        )
+                    }
+                }
+
+                is AuthResult.Failure.EmailNotConfirmed -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            generalError = "E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzdaki onay bağlantısını kontrol edin."
                         )
                     }
                 }
@@ -114,20 +105,11 @@ class RegisterViewModel @Inject constructor(
                     }
                 }
 
-                is AuthResult.Failure.InvalidCredentials -> {
+                is AuthResult.Failure.UserAlreadyExists -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            generalError = "Geçersiz kimlik bilgileri."
-                        )
-                    }
-                }
-
-                is AuthResult.Failure.EmailNotConfirmed -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            generalError = "E-posta henüz doğrulanmamış."
+                            generalError = "Hesap hatası oluştu."
                         )
                     }
                 }
@@ -136,7 +118,7 @@ class RegisterViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            generalError = "Kayıt işlemi sırasında beklenmeyen bir hata oluştu."
+                            generalError = "Giriş yapılırken beklenmeyen bir hata oluştu."
                         )
                     }
                 }
@@ -144,4 +126,3 @@ class RegisterViewModel @Inject constructor(
         }
     }
 }
-
